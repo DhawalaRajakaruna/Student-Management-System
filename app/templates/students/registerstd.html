@@ -3,19 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SMS</title>
+    <title>Register Students</title>
 </head>
 <body>
     
     <h1>Register Students</h1>
     
-    <form action="/registerstd" method="post">
+    <form action="/submit-newstd" method="post">
         <label for="name">Name:</label><br>
         <input type="text" id="name" name="name" required><br><br>
+
         <label for="age">Age:</label><br>
         <input type="number" id="age" name="age" required><br><br>
+
         <label for="grade">Grade:</label><br>
         <input type="text" id="grade" name="grade" required><br><br>
+
+        <label for ="email">Email:</label><br>
+        <input type="email" id="email" name="email" required><br>
+
         <input type="submit" value="Register">
     </form>
  
