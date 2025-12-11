@@ -6,6 +6,17 @@ class StudentCreate(BaseModel): # Use to Add new student (Save )
     grade: str
     email: str
 
+class StudentRead(BaseModel): # Use to read student data
+    id: int
+    name: str
+    age: int
+    grade: str
+    email: str
+
+    class Config:
+        from_attributes = True  # Updated for Pydantic v2 (was orm_mode)
+
+
 class StudentUpdate(BaseModel): #Use to update students
     name: str | None = None
     age: int | None = None # this measn those fields are optional

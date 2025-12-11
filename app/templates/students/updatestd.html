@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Update Students</title>
+</head>
+<body>
+    
+    <h1>Update Students</h1>
+
+    <!-- 🔍 Search Section -->
+    <div>
+        <label for="emailInput">Search by Email:</label><br>
+        <input type="email" id="emailInput" placeholder="Enter student email" required>
+        <button id="searchBtn" type="button">Search</button>
+    </div>
+
+    <br><hr><br>
+
+    <!-- Update Form -->
+    <form action="/submit-updatestd" method="post">
+        <input type="hidden" id="studentId" name="id">
+
+        <label for="name">Name:</label><br>
+        <input type="text" id="name" name="name" required><br><br>
+
+        <label for="age">Age:</label><br>
+        <input type="number" id="age" name="age" required><br><br>
+
+        <label for="grade">Grade:</label><br>
+        <input type="text" id="grade" name="grade" required><br><br>
+
+        <label for="email">Email:</label><br>
+        <input type="email" id="email" name="email" required><br>
+
+        <input type="submit" value="Update">
+    </form>
+
+
+    <!-- JS Script to Handle Search -->
+    <script>
+        document.getElementById('searchBtn').addEventListener('click', () => {
+            const email = document.getElementById('emailInput').value.toLowerCase();
+            fetch('get-students-by-mail?email=' + encodeURIComponent(email))
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.message) {
+                        alert(data.message);
+                        document.getElementById('updateForm').reset();
+                    } else {
+                        alert(data.name + ' found! Fill the form to update.');
+                        document.getElementById('studentId').value = data.id;  // Set the ID
+                        document.getElementById('name').value = data.name;
+                        document.getElementById('age').value = data.age;
+                        document.getElementById('grade').value = data.grade;
+                        document.getElementById('email').value = data.email;
+                    }
+                })
+                .catch(error => {
+                    alert('Error: ' + error.message);
+
+                });
+        });
+    </script>
+
+</body>
+</html>

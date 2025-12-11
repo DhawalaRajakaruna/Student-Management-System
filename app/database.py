@@ -1,11 +1,7 @@
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
-from sqlalchemy.orm import sessionmaker, declarative_base
-import os
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
+from sqlalchemy.orm import declarative_base
 import configparser
 from pathlib import Path
-
-import asyncio
-from sqlalchemy import text
 
 config = configparser.ConfigParser()
 config_path = Path(__file__).resolve().parent / 'database.ini'
@@ -20,14 +16,16 @@ DATABASE_URL = f"postgresql+asyncpg://{db_user}:{db_password}@{db_host}:{db_port
 
 print(DATABASE_URL)
 engine = create_async_engine(DATABASE_URL, echo=True)
-AsyncSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine, class_=AsyncSession)
+AsyncSessionLocal = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
 Base = declarative_base()
 
 async def get_db():
-     async with AsyncSessionLocal() as session:
-         yield session
+    async with AsyncSessionLocal() as session:
+        yield session
 
+
+# ############## Test the database connection ###############
 # async def test_connection():
 #     try:
 #         async with engine.connect() as conn:

@@ -8,8 +8,88 @@
 <body>
     
     <h1>View Students</h1>
-    
 
- 
+    <!-- Buttons and search input -->
+    <button id="viewAllBtn">View All Students</button>
+
+    <input type="text" id="emailInput" placeholder="Enter email to search">
+    <button id="searchBtn">Search</button>
+
+    <!-- Table for displaying students -->
+    <table id="studentsTable" border="1">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Age</th>
+                <th>Grade</th>
+                <th>Email</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Student rows will be dynamically inserted here -->
+        </tbody>
+    </table>
+
+    <script>
+
+        const tableBody = document.getElementById('studentsTable').querySelector('tbody');
+
+        function displayStudents(data) {
+            tableBody.innerHTML = ''; // Clear table
+            if (data.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="5">No students found</td></tr>';
+                return;
+            }
+            data.forEach(student => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${student.id}</td>
+                    <td>${student.name}</td>
+                    <td>${student.age}</td>
+                    <td>${student.grade}</td>
+                    <td>${student.email}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        // View all students
+        document.getElementById('viewAllBtn').addEventListener('click', async () => {
+            try {
+                const response = await fetch('/get-all-students');
+                if (!response.ok) {
+                    throw new Error('Failed to fetch');
+                }
+                const data = await response.json();
+                displayStudents(data);
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        });
+
+        // Search by email
+        document.getElementById('searchBtn').addEventListener('click', () => {
+            const email = document.getElementById('emailInput').value.toLowerCase();
+            fetch('get-students-by-mail?email=' + encodeURIComponent(email))
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.message) {
+                        displayStudents([]);
+                    } else {
+                        displayStudents([data]);
+                    }
+                })
+                .catch(error => {
+                    alert('Error: ' + error.message);
+                });
+        });
+    </script>
+
 </body>
 </html>
