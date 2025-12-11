@@ -3,17 +3,16 @@ from fastapi import FastAPI, Depends, Request
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
 from fastapi.responses import JSONResponse
-from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.asyncio import AsyncSession
 
 
 from database import engine, Base, get_db
-from models import student, admin
 from schemas.student import StudentCreate,StudentRead, StudentUpdate
-from schemas.admin import AdminCreate, AdminUpdate
+from schemas.admin import AdminCreate, AdminUpdate, AdminRead, AdminLogin
 from typing import List
 
 from crud import student as student_crud
+from crud import admin as admin_crud
 
 app = FastAPI()
 
@@ -146,7 +145,7 @@ async def submit_updatestd(request: Request,db: AsyncSession = Depends(get_db)):
         except ValueError:
             return HTMLResponse("<h2>Error: Age must be a number!</h2>", status_code=400)
 
-        student_data = StudentCreate(
+        student_data = StudentUpdate(
             name=name,
             age=age_int,
             grade=grade,
@@ -168,11 +167,16 @@ async def login_page(request: Request):
 
 
 @app.post("/submit-login", response_class=HTMLResponse)
-async def submit_login(request: Request):
-    form_data = await request.form()
-    username = form_data.get("username")
-    password = form_data.get("password")
-    #print(f"Username: {username}, Password: {password}")
-    # Here you would typically validate the username and password
-    return templates.TemplateResponse("dashboard.html", {"request": request, "username": username})
-
+async def submit_login(request: Request,db: AsyncSession = Depends(get_db)):
+    try:
+        form_data = await request.form()
+        username = form_data.get("username")
+        password = form_data.get("password")
+        
+        log_admin = AdminLogin(username=username, password=password)
+        isadmin = await admin_crud.login_admin(db, log_admin)
+        if isadmin is None:
+            return HTMLResponse("<h2>Invalid username or password!</h2>", status_code=401)
+        return templates.TemplateResponse("dashboard.html", {"request": request, "username": username})
+    except Exception as e:
+        return HTMLResponse(f"<h2>Error during login: {str(e)}</h2>", status_code=500)

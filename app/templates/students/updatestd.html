@@ -9,7 +9,6 @@
     
     <h1>Update Students</h1>
 
-    <!-- 🔍 Search Section -->
     <div>
         <label for="emailInput">Search by Email:</label><br>
         <input type="email" id="emailInput" placeholder="Enter student email" required>
@@ -18,7 +17,6 @@
 
     <br><hr><br>
 
-    <!-- Update Form -->
     <form action="/submit-updatestd" method="post">
         <input type="hidden" id="studentId" name="id">
 
@@ -38,7 +36,7 @@
     </form>
 
 
-    <!-- JS Script to Handle Search -->
+
     <script>
         document.getElementById('searchBtn').addEventListener('click', () => {
             const email = document.getElementById('emailInput').value.toLowerCase();
@@ -51,7 +49,6 @@
                 })
                 .then(data => {
                     if (data.message) {
-                        alert(data.message);
                         document.getElementById('updateForm').reset();
                     } else {
                         alert(data.name + ' found! Fill the form to update.');

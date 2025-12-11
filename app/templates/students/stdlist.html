@@ -9,13 +9,13 @@
     
     <h1>View Students</h1>
 
-    <!-- Buttons and search input -->
+
     <button id="viewAllBtn">View All Students</button>
 
     <input type="text" id="emailInput" placeholder="Enter email to search">
     <button id="searchBtn">Search</button>
 
-    <!-- Table for displaying students -->
+
     <table id="studentsTable" border="1">
         <thead>
             <tr>
@@ -27,7 +27,7 @@
             </tr>
         </thead>
         <tbody>
-            <!-- Student rows will be dynamically inserted here -->
+
         </tbody>
     </table>
 
@@ -54,7 +54,7 @@
             });
         }
 
-        // View all students
+
         document.getElementById('viewAllBtn').addEventListener('click', async () => {
             try {
                 const response = await fetch('/get-all-students');
@@ -68,7 +68,7 @@
             }
         });
 
-        // Search by email
+
         document.getElementById('searchBtn').addEventListener('click', () => {
             const email = document.getElementById('emailInput').value.toLowerCase();
             fetch('get-students-by-mail?email=' + encodeURIComponent(email))
