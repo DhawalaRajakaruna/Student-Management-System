@@ -5,9 +5,11 @@ class StudentCreate(BaseModel): # Use to Add new student (Save )
     age: int    # must send all fields   
     grade: str
     email: str
+    subjects: list[str]
+    admin_id: int 
 
 class StudentRead(BaseModel): # Use to read student data
-    id: int
+    std_id: int
     name: str
     age: int
     grade: str
