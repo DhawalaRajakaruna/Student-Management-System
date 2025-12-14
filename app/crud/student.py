@@ -46,16 +46,20 @@ async def create_student(db: AsyncSession, student_data: StudentCreate):
 
 #Get all students
 async def get_students(db: AsyncSession):
-    
-    result = await db.execute(select(Student).options(selectinload(Student.enrolments)))
+    # Load students with enrolments AND each enrolment's subject
+    result = await db.execute(
+        select(Student).options(
+            selectinload(Student.enrolments).selectinload(Enrolment.subject)
+        )
+    )
     students = result.scalars().all()
-    print("This is ",students[0].name)
-    print("This is ",len(students[0].enrolments))
-    print("This is ",students[0].enrolments[1].enrolment_id)
-    print("This is ",students[1].name)
-    print("This is ",students[1].enrolments[0].enrolment_id)
-    print("This is ",students[1].enrolments[1].enrolment_id)
-    print("This is ",students[1].enrolments[2].enrolment_id)
+    
+    # Print example - enrolments is a list, so loop through it
+    for student in students:
+        print(f"Student: {student.name}")
+        for enrolment in student.enrolments:
+            print(f"  - Subject: {enrolment.subject.name}")
+    print("Just a test", students[0].enrolments[0].subject.name)
     
     output = []
     
@@ -70,6 +74,7 @@ async def get_students(db: AsyncSession):
                 {
                     "enrolment_id": e.enrolment_id,
                     "subject_id": e.subject_id,
+                    "subject_name": e.subject.name, 
                     "enrolment_date": e.enrolment_date,
                     "admin_id": e.admin_id,
                 }
@@ -86,9 +91,36 @@ async def get_students(db: AsyncSession):
     return output
 
 async def get_student_by_email(db: AsyncSession, email: str):
-    result = await db.execute(select(Student).where(Student.email == email))
+    result = await db.execute(
+        select(Student)
+        .where(Student.email == email)
+        .options(
+            selectinload(Student.enrolments).selectinload(Enrolment.subject)
+        )
+    )
     student = result.scalars().first()
-    return student
+    
+    if not student:
+        return None
+    
+    # Return formatted output with enrolments
+    return {
+        "std_id": student.std_id,
+        "name": student.name,
+        "age": student.age,
+        "grade": student.grade,
+        "email": student.email,
+        "enrolments": [
+            {
+                "enrolment_id": e.enrolment_id,
+                "subject_id": e.subject_id,
+                "subject_name": e.subject.name,
+                "enrolment_date": e.enrolment_date,
+                "admin_id": e.admin_id,
+            }
+            for e in student.enrolments
+        ]
+    }
 
 async def update_student(db: AsyncSession, student_data: StudentUpdate,id: str):
     print("Update student called in CRUD")

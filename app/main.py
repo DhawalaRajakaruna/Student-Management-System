@@ -61,22 +61,55 @@ async def home(request: Request):
 async def stdlist_page(request: Request):
     return templates.TemplateResponse("students/stdlist.html", {"request": request})
 
-@app.get("/get-all-students", response_model=List[StudentRead])
+@app.get("/get-all-students", response_class=JSONResponse)
 async def get_all_students(db: AsyncSession = Depends(get_db)):
     students = await student_crud.get_students(db)
-    print("new ew neww")
-    return students
+    
+    # Convert enrolment_date to string for JSON serialization
+    output = []
+    for student in students:
+        enrolments = []
+        for e in student["enrolments"]: #this is a list of enrolment dicts
+            enrolments.append({
+                "enrolment_id": e["enrolment_id"],
+                "subject_id": e["subject_id"],
+                "subject_name": e["subject_name"],
+                "enrolment_date": str(e["enrolment_date"]) if e["enrolment_date"] else None,
+                "admin_id": e["admin_id"],
+            })
+        output.append({
+            "std_id": student["std_id"],
+            "name": student["name"],
+            "age": student["age"],
+            "grade": student["grade"],
+            "email": student["email"],
+            "enrolments": enrolments
+        })
+    
+    return JSONResponse(content=output)
 
 @app.get("/get-students-by-mail", response_class=JSONResponse)
 async def get_students_by_mail(email: str, db: AsyncSession = Depends(get_db)):
     student = await student_crud.get_student_by_email(db, email) #calling the crud function
     if student:
+        # Convert enrolment_date to string for JSON serialization
+        enrolments = []
+        for e in student["enrolments"]:
+            enrolments.append({
+                "enrolment_id": e["enrolment_id"],
+                "subject_id": e["subject_id"],
+                "subject_name": e["subject_name"],
+                "enrolment_date": str(e["enrolment_date"]) if e["enrolment_date"] else None,
+                "admin_id": e["admin_id"],
+            })
+        
         return JSONResponse(content={ # returning json response to the frontend
-            "std_id": student.std_id,
-            "name": student.name,
-            "age": student.age,
-            "grade": student.grade,
-            "email": student.email
+            "std_id": student["std_id"],
+            "name": student["name"],
+            "age": student["age"],
+            "grade": student["grade"],
+            "email": student["email"],
+            "enrolments": enrolments
         })
     else:
         return JSONResponse(content={"error": "Student not found"}, status_code=404)

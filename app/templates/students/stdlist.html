@@ -4,19 +4,27 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>All Students</title>
+    <style>
+        table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #4CAF50; color: white; }
+        tr:nth-child(even) { background-color: #f2f2f2; }
+        .subject-list { margin: 0; padding-left: 15px; }
+        .subject-item { margin: 2px 0; }
+        button { padding: 8px 16px; margin: 5px; cursor: pointer; }
+        input { padding: 8px; margin: 5px; }
+    </style>
 </head>
 <body>
     
     <h1>View Students</h1>
-
 
     <button id="viewAllBtn">View All Students</button>
 
     <input type="text" id="emailInput" placeholder="Enter email to search">
     <button id="searchBtn">Search</button>
 
-
-    <table id="studentsTable" border="1">
+    <table id="studentsTable">
         <thead>
             <tr>
                 <th>ID</th>
@@ -24,37 +32,54 @@
                 <th>Age</th>
                 <th>Grade</th>
                 <th>Email</th>
+                <th>Subjects (Admin)</th>
             </tr>
         </thead>
         <tbody>
-
         </tbody>
     </table>
 
     <script>
-
         const tableBody = document.getElementById('studentsTable').querySelector('tbody');
 
         function displayStudents(data) {
-            tableBody.innerHTML = ''; // Clear table
+            tableBody.innerHTML = '';
             if (data.length === 0) {
-                tableBody.innerHTML = '<tr><td colspan="5">No students found</td></tr>';
+                tableBody.innerHTML = '<tr><td colspan="6">No students found</td></tr>';
                 return;
             }
             data.forEach(student => {
                 const row = document.createElement('tr');
+                
+                // Format subjects with admin info in a single cell
+                let subjectsHtml = '';
+                if (student.enrolments && student.enrolments.length > 0) {
+                    subjectsHtml = '<ul class="subject-list">';
+                    student.enrolments.forEach(e => {
+                        subjectsHtml += `<li class="subject-item">${e.subject_name} (Admin: ${e.admin_id})</li>`;
+                    });
+                    subjectsHtml += '</ul>';
+                } else {
+                    subjectsHtml = 'No subjects';
+                }
+
                 row.innerHTML = `
                     <td>${student.std_id}</td>
                     <td>${student.name}</td>
                     <td>${student.age}</td>
                     <td>${student.grade}</td>
                     <td>${student.email}</td>
+                    <td>${subjectsHtml}</td>
                 `;
+                
+                // Store enrolment data as data attribute for later use
+                row.dataset.enrolments = JSON.stringify(student.enrolments || []);
+                
                 tableBody.appendChild(row);
             });
         }
 
-
+        // View all students
         document.getElementById('viewAllBtn').addEventListener('click', async () => {
             try {
                 const response = await fetch('/get-all-students');
@@ -68,26 +93,27 @@
             }
         });
 
-
-        document.getElementById('searchBtn').addEventListener('click', () => {
-            const email = document.getElementById('emailInput').value.toLowerCase();
-            fetch('get-students-by-mail?email=' + encodeURIComponent(email))
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Failed to fetch');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    if (data.message) {
-                        displayStudents([]);
-                    } else {
-                        displayStudents([data]);
-                    }
-                })
-                .catch(error => {
-                    alert('Error: ' + error.message);
-                });
+        // Search by email
+        document.getElementById('searchBtn').addEventListener('click', async () => {
+            const email = document.getElementById('emailInput').value.trim().toLowerCase();
+            if (!email) {
+                alert('Please enter an email');
+                return;
+            }
+            try {
+                const response = await fetch('/get-students-by-mail?email=' + encodeURIComponent(email));
+                if (!response.ok) {
+                    throw new Error('Failed to fetch');
+                }
+                const data = await response.json();
+                if (data.error) {
+                    displayStudents([]);
+                } else {
+                    displayStudents([data]);
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
         });
     </script>
 

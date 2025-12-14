@@ -8,12 +8,20 @@ class StudentCreate(BaseModel): # Use to Add new student (Save )
     subjects: list[str]
     admin_id: int 
 
+class EnrolmentRead(BaseModel): # Nested enrolment data
+    enrolment_id: int
+    subject_id: int
+    subject_name: str
+    enrolment_date: str | None = None
+    admin_id: int
+
 class StudentRead(BaseModel): # Use to read student data
     std_id: int
     name: str
     age: int
     grade: str
     email: str
+    enrolments: list[EnrolmentRead] = []
 
     class Config:
         from_attributes = True  # Updated for Pydantic v2 (was orm_mode)
