@@ -4,6 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Update Students</title>
+
+    <script>
+        function validateForm() {
+            const checkboxes = document.querySelectorAll('input[name="subjects"]:checked');
+            if (checkboxes.length === 0) {
+                alert('Please select at least one subject to enroll!');
+                return false;
+            }
+            return true;
+        }
+    </script>
+
 </head>
 <body>
     
@@ -17,7 +29,7 @@
 
     <br><hr><br>
 
-    <form action="/submit-updatestd" method="post">
+    <form id="updateForm" action="/submit-updatestd" method="post" onsubmit="return validateForm()">
         <input type="hidden" id="studentId" name="id">
 
         <label for="name">Name:</label><br>
@@ -30,39 +42,102 @@
         <input type="text" id="grade" name="grade" required><br><br>
 
         <label for="email">Email:</label><br>
-        <input type="email" id="email" name="email" required><br>
+        <input type="email" id="email" name="email" required><br><br>
+
+        <fieldset id="subjectsFieldset">
+            <legend>Enrolled Subjects (Check/Uncheck to modify):</legend>
+            <div id="subjectsContainer">
+                <p style="color: gray; font-style: italic;">Search for a student to view their enrolled subjects.</p>
+            </div>
+        </fieldset><br>
 
         <input type="submit" value="Update">
+
     </form>
 
 
 
     <script>
+        let currentStudent = null;
+        let currentSubjects = null;
+        let enrolledSubjects = null;
         document.getElementById('searchBtn').addEventListener('click', () => {
             const email = document.getElementById('emailInput').value.toLowerCase();
-            fetch('get-students-by-mail?email=' + encodeURIComponent(email))
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Failed to fetch');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    if (data.message) {
-                        document.getElementById('updateForm').reset();
-                    } else {
-                        alert(data.name + ' found! Fill the form to update.');
-                        document.getElementById('studentId').value = data.id;  // Set the ID
-                        document.getElementById('name').value = data.name;
-                        document.getElementById('age').value = data.age;
-                        document.getElementById('grade').value = data.grade;
-                        document.getElementById('email').value = data.email;
-                    }
-                })
-                .catch(error => {
-                    alert('Error: ' + error.message);
+            
+            // Fetch student data and all subjects in parallel
+            Promise.all([
+                fetch('/get-students-by-mail?email=' + encodeURIComponent(email)),
+                fetch('/get-all-subjects')
+            ])
+            .then(async ([studentResponse, subjectsResponse]) => {
+                if (!studentResponse.ok) {
+                    throw new Error('Student not found');
+                }
+                const studentData = await studentResponse.json();
+                const subjectsData = await subjectsResponse.json();
+                currentStudent = studentData;
+                currentSubjects = subjectsData;
 
-                });
+                if (studentData.error) {
+                    alert(studentData.error);
+                    document.getElementById('updateForm').reset();
+                    return;
+                }
+                
+                alert(studentData.name + ' found! Update details and modify subject enrollments.');
+                
+                // Populate student details
+                document.getElementById('studentId').value = studentData.std_id;
+                document.getElementById('name').value = studentData.name;
+                document.getElementById('age').value = studentData.age;
+                document.getElementById('grade').value = studentData.grade;
+                document.getElementById('email').value = studentData.email;
+                
+                // Get enrolled subject IDs
+                const enrolledSubjectIds = studentData.enrolments 
+                    ? studentData.enrolments.map(e => e.subject_id) 
+                    : [];
+                enrolledSubjects = enrolledSubjectIds;
+
+                // Build subjects checkboxes
+                const container = document.getElementById('subjectsContainer');
+                container.innerHTML = '';
+                
+                if (subjectsData && subjectsData.length > 0) {
+                    subjectsData.forEach(subject => {
+                        const isEnrolled = enrolledSubjectIds.includes(subject.sub_id);
+                        const div = document.createElement('div');
+                        div.style.marginBottom = '8px';
+                        div.innerHTML = `
+                            <input type="checkbox" 
+                                   id="subject_${subject.sub_id}" 
+                                   name="subjects" 
+                                   value="${subject.sub_id}"
+                                   ${isEnrolled ? 'checked' : ''}>
+                            <label for="subject_${subject.sub_id}">
+                                (${subject.sub_id}) - ${subject.name} - ${subject.description || ''}
+                                ${isEnrolled ? '<span style="color: green; font-weight: bold;"> ✓ Currently Enrolled</span>' : ''}
+                            </label>
+                        `;
+                        container.appendChild(div);
+                    });
+                } else {
+                    container.innerHTML = '<p>No subjects available.</p>';
+                }
+            })
+            .catch(error => {
+                alert('Error: ' + error.message);
+                document.getElementById('updateForm').reset();
+                document.getElementById('subjectsContainer').innerHTML = 
+                    '<p style="color: gray; font-style: italic;">Search for a student to view their enrolled subjects.</p>';
+            });
+        });
+
+
+        document.getElementById('updateForm').addEventListener('submit', (e) => {
+            const checkboxes = document.querySelectorAll('input[name="subjects"]:checked');
+            //alert(enrolledSubjects + 'Hey');
+            
         });
     </script>
 

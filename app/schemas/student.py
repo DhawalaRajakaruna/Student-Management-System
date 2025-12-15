@@ -28,10 +28,15 @@ class StudentRead(BaseModel): # Use to read student data
 
 
 class StudentUpdate(BaseModel): #Use to update students
+    id: int
     name: str | None = None
     age: int | None = None # this measn those fields are optional
     grade: str | None = None# can be eather with balues or not 
     email: str | None = None# Since it is to update waht we want
+    subjects: list[int] 
+    admin_id: int 
+
+
 
 
     

@@ -55,7 +55,7 @@ templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
 async def home(request: Request):
     return templates.TemplateResponse("auth/index.html", {"request": request})
 
-
+#Done
 ######################## View Student List Page ######################
 @app.get("/stdlist", response_class=HTMLResponse)
 async def stdlist_page(request: Request):
@@ -64,58 +64,27 @@ async def stdlist_page(request: Request):
 @app.get("/get-all-students", response_class=JSONResponse)
 async def get_all_students(db: AsyncSession = Depends(get_db)):
     students = await student_crud.get_students(db)
-    
-    # Convert enrolment_date to string for JSON serialization
-    output = []
-    for student in students:
-        enrolments = []
-        for e in student["enrolments"]: #this is a list of enrolment dicts
-            enrolments.append({
-                "enrolment_id": e["enrolment_id"],
-                "subject_id": e["subject_id"],
-                "subject_name": e["subject_name"],
-                "enrolment_date": str(e["enrolment_date"]) if e["enrolment_date"] else None,
-                "admin_id": e["admin_id"],
-            })
-        output.append({
-            "std_id": student["std_id"],
-            "name": student["name"],
-            "age": student["age"],
-            "grade": student["grade"],
-            "email": student["email"],
-            "enrolments": enrolments
-        })
-    
-    return JSONResponse(content=output)
+    return JSONResponse(content=students)
+
+@app.get("/get-all-subjects", response_class=JSONResponse)
+async def get_all_subjects(db: AsyncSession = Depends(get_db)):
+    subjects = await subject_crud.get_all_subjects(db)
+    return JSONResponse(content=[{
+        "sub_id": s.sub_id,
+        "name": s.name,
+        "description": s.description
+    } for s in subjects])
 
 @app.get("/get-students-by-mail", response_class=JSONResponse)
 async def get_students_by_mail(email: str, db: AsyncSession = Depends(get_db)):
     student = await student_crud.get_student_by_email(db, email) #calling the crud function
     if student:
-        # Convert enrolment_date to string for JSON serialization
-        enrolments = []
-        for e in student["enrolments"]:
-            enrolments.append({
-                "enrolment_id": e["enrolment_id"],
-                "subject_id": e["subject_id"],
-                "subject_name": e["subject_name"],
-                "enrolment_date": str(e["enrolment_date"]) if e["enrolment_date"] else None,
-                "admin_id": e["admin_id"],
-            })
-        
-        return JSONResponse(content={ # returning json response to the frontend
-            "std_id": student["std_id"],
-            "name": student["name"],
-            "age": student["age"],
-            "grade": student["grade"],
-            "email": student["email"],
-            "enrolments": enrolments
-        })
+        return JSONResponse(content=student)
     else:
         return JSONResponse(content={"error": "Student not found"}, status_code=404)
 
 
-
+#Done
 ######################## Register Student Page ######################
 @app.get("/registerstd", response_class=HTMLResponse)
 async def registerstd_page(request: Request, db: AsyncSession = Depends(get_db)):
@@ -131,9 +100,10 @@ async def registerstd_page(request: Request, db: AsyncSession = Depends(get_db))
 async def submit_newstd(request: Request, db: AsyncSession = Depends(get_db)):
     
     admin_id = request.session.get("admin_id")
+    
 
     try:
-        form_data = await request.form()
+        form_data = await request.form()# getting student Data From the form
         name = form_data.get("name")
         age = form_data.get("age")
         grade = form_data.get("grade")
@@ -148,7 +118,7 @@ async def submit_newstd(request: Request, db: AsyncSession = Depends(get_db)):
                 return HTMLResponse("<h2>Error: Invalid age value!</h2>", status_code=400)
         except ValueError:
             return HTMLResponse("<h2>Error: Age must be a number!</h2>", status_code=400)
-
+        #print('++++++++++++++++++Debugingggg+++++++++++++++++++++++')
         student_data = StudentCreate(
             name=name,
             age=age_int,
@@ -158,8 +128,9 @@ async def submit_newstd(request: Request, db: AsyncSession = Depends(get_db)):
             admin_id=admin_id
         )
         #print(student_data.name)
-        
+        #print('++++++++++++++++++Debugingggg+++++++++++++++++++++++')
         result = await student_crud.create_student(db, student_data)
+        
         if result == {'equal-emails'}:
             return HTMLResponse("""
                 <script>
@@ -196,6 +167,8 @@ async def updatestd_page(request: Request):
 @app.post("/submit-updatestd", response_class=HTMLResponse)
 async def submit_updatestd(request: Request,db: AsyncSession = Depends(get_db)):
 
+    admin_id = request.session.get("admin_id")
+
     try:
         form_data = await request.form()
         id = form_data.get("id")
@@ -204,6 +177,9 @@ async def submit_updatestd(request: Request,db: AsyncSession = Depends(get_db)):
         grade = form_data.get("grade")
         email = form_data.get("email")
 
+        subjects = form_data.getlist("subjects")
+
+        
 
         try:
             age_int = int(age)
@@ -213,17 +189,20 @@ async def submit_updatestd(request: Request,db: AsyncSession = Depends(get_db)):
             return HTMLResponse("<h2>Error: Age must be a number!</h2>", status_code=400)
 
         student_data = StudentUpdate(
+            id = id,
             name=name,
             age=age_int,
             grade=grade,
-            email=email
+            email=email,
+            subjects=subjects,
+            admin_id=admin_id
         )
-        
-        await student_crud.update_student(db, student_data,id)
-        return HTMLResponse(f"<h2>Student {name} registered successfully!</h2>")
+
+        await student_crud.update_student(db, student_data)
+        return HTMLResponse(f"<h2>Student {name} Update successfully!</h2>")
         
     except Exception as e:
-        return HTMLResponse(f"<h2>Error registering student: {str(e)}</h2>", status_code=500)
+        return HTMLResponse(f"<h2>Error in updating the student: {str(e)}</h2>", status_code=500)
 
 
 
