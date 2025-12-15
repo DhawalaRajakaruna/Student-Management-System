@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register Students</title>
+    <title>Register Student</title>
+    <link rel="stylesheet" href="/static/css/main.css">
     <script>
         function validateForm() {
             const checkboxes = document.querySelectorAll('input[name="subjects"]:checked');
@@ -17,40 +18,81 @@
 </head>
 <body>
     
-    <h1>Register Students</h1>
+    <div class="container-md">
+        <a href="{{ url_for('dashboard') }}" class="back-link">← Back to Dashboard</a>
+        
+        <div class="card">
+            <div class="card-header">
+                <div class="brand">
+                    <div class="brand-icon">➕</div>
+                </div>
+                <h1>Register New Student</h1>
+                <p>Fill in the details to add a new student</p>
+            </div>
+            
+            <form action="/submit-newstd" method="post" onsubmit="return validateForm()">
+                <div class="form-group">
+                    <label for="name">Full Name</label>
+                    <input type="text" id="name" name="name" class="form-control" placeholder="Enter student's full name" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="age">Age</label>
+                    <input type="number" id="age" name="age" class="form-control" placeholder="Enter student's age" min="0" max="150" required>
+                </div>
+
+
+                <div class="form-group">
+                    <label for="grade">Grade</label>
+                    <input type="text" id="grade" name="grade" class="form-control" placeholder="Enter student's grade" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" name="email" class="form-control" placeholder="Enter student's email" required>
+                </div>
+
+                <fieldset class="fieldset">
+                    <legend>Select Subjects to Enroll</legend>
+                    <div class="checkbox-group">
+                        {% if subjects %}
+                            {% for subject in subjects %}
+                                <div class="checkbox-item">
+                                    <input type="checkbox" 
+                                           id="subject_{{ subject.sub_id }}" 
+                                           name="subjects" 
+                                           value="{{ subject.sub_id }}">
+                                    <label for="subject_{{ subject.sub_id }}">
+                                        {{ subject.name }} - {{ subject.description }}
+                                    </label>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <p class="text-muted">No subjects available.</p>
+                        {% endif %}
+                    </div>
+                </fieldset>
+
+                <button type="submit" class="btn btn-success btn-block btn-lg mt-2">
+                    ✓ Register Student
+                </button>
+            </form>
+        </div>
+    </div>
+    <script>
+    document.getElementById('age').addEventListener('input', function() {
+        const age = parseInt(this.value);
+        if (age < 0 || age > 150) {
+            this.setCustomValidity('Age must be between 0 and 150.');
+            this.reportValidity(); // shows the message
+        } else {
+            this.setCustomValidity(''); // clear the error
+        }
+    });
     
-    <form action="/submit-newstd" method="post" onsubmit="return validateForm()">
-        <label for="name">Name:</label><br>
-        <input type="text" id="name" name="name" required><br><br>
 
-        <label for="age">Age:</label><br>
-        <input type="number" id="age" name="age" required><br><br>
 
-        <label for="grade">Grade:</label><br>
-        <input type="text" id="grade" name="grade" required><br><br>
+    </script>
 
-        <label for="email">Email:</label><br>
-        <input type="email" id="email" name="email" required><br><br>
-
-        <fieldset>
-            <legend>Select Subjects to Enroll:</legend>
-            {% if subjects %}
-                {% for subject in subjects %}
-                    <input type="checkbox" 
-                           id="subject_{{ subject.sub_id }}" 
-                           name="subjects" 
-                           value="{{ subject.sub_id }}">
-                    <label for="subject_{{ subject.sub_id }}">
-                        ({{ subject.sub_id }}) - {{ subject.name }} - {{ subject.description }}
-                    </label><br>
-                {% endfor %}
-            {% else %}
-                <p>No subjects available.</p>
-            {% endif %}
-        </fieldset><br>
-
-        <input type="submit" value="Register">
-    </form>
- 
 </body>
 </html>

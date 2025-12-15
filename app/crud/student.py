@@ -27,7 +27,8 @@ async def create_student(db: AsyncSession, student_data: StudentCreate):
             name=student_data.name,
             age=student_data.age,
             grade=student_data.grade,
-            email=student_data.email,
+            email=student_data.email
+
         )
         
         db.add(new_student)

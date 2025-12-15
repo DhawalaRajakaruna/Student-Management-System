@@ -3,18 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Delete Students</title>
+    <title>Delete Student</title>
+    <link rel="stylesheet" href="/static/css/main.css">
 </head>
 <body>
     
-    <h1>Delete Students</h1>
-    
-    <form action="/submit-delstd" method="post">
-        <label for="email">Enter Student's email to Delete:</label><br>
-        <input type="text" id="email" name="email" required><br><br>
+    <div class="container-sm">
+        <a href="{{ url_for('dashboard') }}" class="back-link">← Back to Dashboard</a>
+        
+        <div class="card">
+            <div class="card-header">
+                <div class="brand">
+                    <div class="brand-icon">🗑️</div>
+                </div>
+                <h1>Delete Student</h1>
+                <p>Enter the student's email to remove them from the system</p>
+            </div>
+            
+            <div class="alert alert-warning">
+                ⚠️ Warning: This action cannot be undone. The student and all their enrollment data will be permanently deleted.
+            </div>
+            
+            <form action="/submit-delstd" method="post">
+                <div class="form-group">
+                    <label for="email">Student Email</label>
+                    <input type="email" id="email" name="email" class="form-control" placeholder="Enter student's email address" required>
+                </div>
 
-        <input type="submit" value="Delete">
-    </form>
+                <button type="submit" class="btn btn-danger btn-block btn-lg">
+                    🗑️ Delete Student
+                </button>
+            </form>
+        </div>
+    </div>
  
 </body>
 </html>

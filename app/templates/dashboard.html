@@ -4,18 +4,47 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard</title>
+    <link rel="stylesheet" href="/static/css/main.css">
 </head>
 <body>
     
-    <h1>Welcome to Dashboard!</h1>
-    <a href="/registerstd"><button>Register New students</button></a>
-    <br><br>
-    <a href="/stdlist"><button>View Students</button></a>
-    <br><br>
-    <a href="/updatestd"><button>Update students</button></a>
-    <br><br>
-    <a href="/deletestd"><button>Delete students</button></a>
-    <br><br>
+    <div class="container">
+        <div class="card">
+            <div class="card-header">
+                <div class="brand">
+                    <div class="brand-icon">📊</div>
+                </div>
+                <h1>Admin Dashboard</h1>
+                <p>Manage your students and their enrollments</p>
+            </div>
+            
+            <div class="dashboard-grid">
+                <a href="/registerstd" class="dashboard-card register">
+                    <div class="icon">➕</div>
+                    <h3>Register Student</h3>
+                    <p>Add new students to the system</p>
+                </a>
+                
+                <a href="/stdlist" class="dashboard-card view">
+                    <div class="icon">👥</div>
+                    <h3>View Students</h3>
+                    <p>Browse all registered students</p>
+                </a>
+                
+                <a href="/updatestd" class="dashboard-card update">
+                    <div class="icon">✏️</div>
+                    <h3>Update Student</h3>
+                    <p>Modify student information</p>
+                </a>
+                
+                <a href="/deletestd" class="dashboard-card delete">
+                    <div class="icon">🗑️</div>
+                    <h3>Delete Student</h3>
+                    <p>Remove students from the system</p>
+                </a>
+            </div>
+        </div>
+    </div>
  
 </body>
 </html>
