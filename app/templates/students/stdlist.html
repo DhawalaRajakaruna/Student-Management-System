@@ -112,7 +112,7 @@
             try {
                 const response = await fetch('/get-students-by-mail?email=' + encodeURIComponent(email));
                 if (!response.ok) {
-                    throw new Error('Failed to fetch');
+                    throw new Error('Student not found');
                 }
                 const data = await response.json();
                 if (data.error) {

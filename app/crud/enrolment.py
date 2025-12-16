@@ -4,6 +4,22 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from models.enrolment import Enrolment
 from models.student import Student
 
+
+async def delete_enrolments_by_student(db: AsyncSession, std_id: int):
+    try:
+        result = await db.execute(
+            select(Enrolment).where(Enrolment.student_id == std_id)
+        )
+        enrolments = result.scalars().all()
+        
+        for enrolment in enrolments:
+            await db.delete(enrolment)
+        
+        await db.commit()
+    except Exception as e:
+        await db.rollback()
+        print(f"Error deleting enrolments for student {std_id}: {e}")
+
 async def enrol_student_in_subject(db: AsyncSession, sub_ids: list, std_id: int, admin_id: int):
     for sub_id in sub_ids:
         new_enrollment = Enrolment(

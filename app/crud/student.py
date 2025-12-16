@@ -12,36 +12,33 @@ from fastapi.responses import HTMLResponse
 
 #Create Student
 async def create_student(db: AsyncSession, student_data: StudentCreate):
-    #print('++++++++++++++++++Debugingggg+++++++++++++++++++++++')
     try:
-        # check for same emails
+        # Check for same emails (uncommented and fixed)
         result = await db.execute(
             select(Student).where(Student.email == student_data.email)
         )
         existing_student = result.scalar_one_or_none() 
-        
         if existing_student:
-            return ({'equal-emails'})
-        #print('++++++++++++++++++Debugingggg+++++++++++++++++++++++')
+            return None  # Return None to indicate duplicate email
+        
         new_student = Student(
             name=student_data.name,
             age=student_data.age,
             grade=student_data.grade,
             email=student_data.email
-
         )
-        
         db.add(new_student)
         await db.flush()  
-
-        await enrolment_crud.enrol_student_in_subject(db, student_data.subjects, new_student.std_id, student_data.admin_id)
-        
+        await enrolment_crud.enrol_student_in_subject(
+            db, 
+            student_data.subjects, 
+            new_student.std_id, 
+            student_data.admin_id
+        )
         await db.commit()
         await db.refresh(new_student)
-        
         print(f"{new_student.name} created with enrollments.")
         return new_student
-        
     except Exception as e:
         await db.rollback()
         raise e
@@ -55,13 +52,6 @@ async def get_students(db: AsyncSession):
         )
     )
     students = result.scalars().all()
-    
-    # Print example - enrolments is a list, so loop through it
-    # for student in students:
-    #     print(f"Student: {student.name}")
-    #     for enrolment in student.enrolments:
-    #         print(f"  - Subject: {enrolment.subject.name}")
-    # print("Just a test", students[0].enrolments[0].subject.name)
     
     output = []
     
@@ -142,7 +132,7 @@ async def update_student(db: AsyncSession, student_data: StudentUpdate):
         student.name = student_data.name
         student.age = student_data.age
         student.grade = student_data.grade
-        student.email = student_data.email
+
 
         
         await enrolment_crud.update_enrolments(student,student_data.subjects, db,student_data.admin_id)
@@ -162,6 +152,8 @@ async def delete_student_by_email(db: AsyncSession, email: str):
     try:
         result = await db.execute(select(Student).where(Student.email == email))
         student = result.scalars().first()
+        
+        await enrolment_crud.delete_enrolments_by_student(db, student.std_id)
 
         if not student:
             return None 
