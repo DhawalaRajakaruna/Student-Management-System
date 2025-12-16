@@ -10,7 +10,7 @@ from database import engine, Base, get_db
 
 from schemas.student import StudentCreate, StudentUpdate
 from schemas.admin import AdminLogin
-from typing import List
+
 
 from crud import student as student_crud
 from crud import admin as admin_crud
@@ -44,9 +44,15 @@ templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
 #No need of having satics files for now
 app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="static")
 
+from fastapi import Request, HTTPException, status
+
 def admin_required(request: Request):
-    if not request.session.get("admin_logged_in"):
-        raise HTTPException(status_code=401, detail="Not authenticated")
+    if not request.session.get("admin_id"):
+        raise HTTPException(
+            status_code=status.HTTP_303_SEE_OTHER,
+            headers={"Location": "/login"},
+        )
+
     
 def control_cache(request: Request, html: HTMLResponse):
     html.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
@@ -54,11 +60,19 @@ def control_cache(request: Request, html: HTMLResponse):
     html.headers["Expires"] = "0"
     return html
 
+# @app.get("/dashboard", dependencies=[Depends(admin_required)])
+# async def dashboard(request: Request):
+#     admin_id = request.session.get("admin_id")
+#     username = request.session.get("name")
+#     html = templates.TemplateResponse("dashboard.html", {"request": request, "username": username})
+#     return control_cache(request, html)
+
 @app.get("/dashboard", dependencies=[Depends(admin_required)])
 async def dashboard(request: Request):
-    admin_id = request.session.get("admin_id")
-    username = request.session.get("name")
-    html = templates.TemplateResponse("dashboard.html", {"request": request, "username": username})
+    html = templates.TemplateResponse(
+        "dashboard.html",
+        {"request": request}
+    )
     return control_cache(request, html)
 
 ######################### Home Page ######################
@@ -70,7 +84,8 @@ async def home(request: Request):
 ######################## View Student List Page ######################
 @app.get("/stdlist", response_class=HTMLResponse)
 async def stdlist_page(request: Request):
-    return templates.TemplateResponse("students/stdlist.html", {"request": request})
+    html = templates.TemplateResponse("students/stdlist.html", {"request": request})
+    return control_cache(request, html)
 
 @app.get("/get-all-students", response_class=JSONResponse)
 async def get_all_students(db: AsyncSession = Depends(get_db)):
@@ -97,14 +112,15 @@ async def get_students_by_mail(email: str, db: AsyncSession = Depends(get_db)):
 
 #Done
 ######################## Register Student Page ######################
-@app.get("/registerstd", response_class=HTMLResponse)
+@app.get("/registerstd", response_class=HTMLResponse, dependencies=[Depends(admin_required)])
 async def registerstd_page(request: Request, db: AsyncSession = Depends(get_db)):
     subjects = await subject_crud.get_all_subjects(db)
 
-    return templates.TemplateResponse(
+    html = templates.TemplateResponse(
         "students/registerstd.html", 
         {"request": request, "subjects": subjects}
     )
+    return control_cache(request, html)
 
 @app.post("/submit-newstd")
 async def submit_newstd(request: Request, db: AsyncSession = Depends(get_db)):
@@ -151,17 +167,11 @@ async def submit_newstd(request: Request, db: AsyncSession = Depends(get_db)):
 
 #Done
 ######################## Delete Student Page ######################
-@app.get("/deletestd", response_class=HTMLResponse)
+@app.get("/deletestd", response_class=HTMLResponse, dependencies=[Depends(admin_required)])
 async def deletestd_page(request: Request):
-    return templates.TemplateResponse("students/deletestd.html", {"request": request})
+    html = templates.TemplateResponse("students/deletestd.html", {"request": request})
+    return control_cache(request, html)
 
-# @app.post("/submit-delstd", response_class=HTMLResponse)
-# async def submit_delstd(request: Request, db: AsyncSession = Depends(get_db)):
-#     form_data = await request.form()
-#     email = form_data.get("email")
-
-#     await student_crud.delete_student_by_email(db, email)
-#     return HTMLResponse(f"<h2>Student with the ID num:{id} , Deleted successfully!</h2>")
 
 @app.post("/submit-delstd")
 async def submit_delstd(request: Request, db: AsyncSession = Depends(get_db)):
@@ -186,9 +196,10 @@ async def submit_delstd(request: Request, db: AsyncSession = Depends(get_db)):
         )
 #Done
 ######################## Update Student Page ######################
-@app.get("/updatestd", response_class=HTMLResponse)
+@app.get("/updatestd", response_class=HTMLResponse, dependencies=[Depends(admin_required)])
 async def updatestd_page(request: Request):
-    return templates.TemplateResponse("students/updatestd.html", {"request": request})
+    html = templates.TemplateResponse("students/updatestd.html", {"request": request})
+    return control_cache(request, html)
 
 @app.post("/submit-updatestd")
 async def submit_updatestd(request: Request, db: AsyncSession = Depends(get_db)):
@@ -255,6 +266,7 @@ async def submit_updatestd(request: Request, db: AsyncSession = Depends(get_db))
 @app.get("/login", response_class=HTMLResponse)
 async def login_page(request: Request):
     return templates.TemplateResponse("auth/login.html", {"request": request})
+    
 
 
 @app.post("/submit-login", response_class=HTMLResponse)
@@ -289,10 +301,29 @@ async def submit_login(request: Request,db: AsyncSession = Depends(get_db)):
             status_code=500
         )
 
+# ######################## Manage Admin Page ######################
+# @app.get("/manageadmin", response_class=HTMLResponse)
+# async def login_page(request: Request):
+#     return templates.TemplateResponse("admins/manageadmin.html", {"request": request})
+
+
+
+# ####################### Manage Subject Page ######################
+# @app.get("/managesubject", response_class=HTMLResponse)
+# async def login_page(request: Request):
+#     return templates.TemplateResponse("admins/managesubject.html", {"request": request})
+
+
+
+###################### Logout Endpoint ######################
 @app.get("/logout")
 async def logout(request: Request):
-    """Logout admin and clear session"""
-
-    request.session["admin_logged_in"] = False
     request.session.clear()
-    return RedirectResponse(url="/login", status_code=303)
+
+    response = RedirectResponse(url="/login", status_code=303)
+    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
+    return response
+
+     
