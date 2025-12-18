@@ -29,12 +29,7 @@ async def create_student(db: AsyncSession, student_data: StudentCreate):
         )
         db.add(new_student)
         await db.flush()  
-        await enrolment_crud.enrol_student_in_subject(
-            db, 
-            student_data.subjects, 
-            new_student.std_id, 
-            student_data.admin_id
-        )
+        await enrolment_crud.enrol_student_in_subject(db,student_data.subjects,new_student.std_id,student_data.admin_id)
         await db.commit()
         await db.refresh(new_student)
         print(f"{new_student.name} created with enrollments.")

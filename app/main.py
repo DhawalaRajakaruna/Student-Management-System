@@ -12,12 +12,16 @@ from schemas.student import StudentCreate, StudentUpdate
 from schemas.admin import AdminLogin
 
 
+
+
 from crud import student as student_crud
 from crud import admin as admin_crud
 from crud import subject as subject_crud
+from crud import initialize_default_data
 
 # Middleware for session management
 from starlette.middleware.sessions import SessionMiddleware
+from fastapi import Request, HTTPException, status
 
 app = FastAPI()
 
@@ -34,6 +38,9 @@ async def on_startup():
         await conn.run_sync(Base.metadata.create_all)
     print("Database tables created successfully.")   
 
+    await initialize_default_data()
+
+
 
 # Get the directory where main.py is located
 BASE_DIR = Path(__file__).resolve().parent
@@ -44,14 +51,16 @@ templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
 #No need of having satics files for now
 app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="static")
 
-from fastapi import Request, HTTPException, status
+
 
 def admin_required(request: Request):
     if not request.session.get("admin_id"):
+        request.session.clear()
         raise HTTPException(
             status_code=status.HTTP_303_SEE_OTHER,
-            headers={"Location": "/login"},
+            headers={"Location": "/login"}
         )
+
 
     
 def control_cache(request: Request, html: HTMLResponse):
@@ -71,14 +80,21 @@ def control_cache(request: Request, html: HTMLResponse):
 async def dashboard(request: Request):
     html = templates.TemplateResponse(
         "dashboard.html",
-        {"request": request}
+        {"request": request,"username": request.session.get("name")}
     )
     return control_cache(request, html)
 
 ######################### Home Page ######################
+# @app.get("/", response_class=HTMLResponse, dependencies=[Depends(admin_required)])
+# async def home(request: Request):
+#     html = templates.TemplateResponse("auth/index.html", {"request": request})
+#     return control_cache(request, html)
+
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request):
     return templates.TemplateResponse("auth/index.html", {"request": request})
+
+
 
 #Done
 ######################## View Student List Page ######################
@@ -294,7 +310,9 @@ async def submit_login(request: Request,db: AsyncSession = Depends(get_db)):
         request.session["admin_id"] = isadmin.admin_id if isadmin else None
         request.session["name"] = isadmin.name if isadmin else None
 
-        return templates.TemplateResponse("dashboard.html", {"request": request, "username": isadmin.name})
+        
+        html=templates.TemplateResponse("dashboard.html", {"request": request, "username": isadmin.name})
+        return control_cache(request, html)
     except Exception as e:
         return JSONResponse(
             content={"error": f"Login failed: {str(e)}"},
@@ -316,14 +334,19 @@ async def submit_login(request: Request,db: AsyncSession = Depends(get_db)):
 
 
 ###################### Logout Endpoint ######################
+# @app.get("/logout")
+# async def logout(request: Request):
+#     request.session.clear()
+
+#     response = RedirectResponse(url="/login", status_code=303)
+#     response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+#     response.headers["Pragma"] = "no-cache"
+#     response.headers["Expires"] = "0"
+#     return response
+
+     
 @app.get("/logout")
 async def logout(request: Request):
     request.session.clear()
-
-    response = RedirectResponse(url="/login", status_code=303)
-    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
-    response.headers["Pragma"] = "no-cache"
-    response.headers["Expires"] = "0"
-    return response
-
-     
+    html= templates.TemplateResponse("auth/index.html", {"request": request})
+    return control_cache(request, html)
