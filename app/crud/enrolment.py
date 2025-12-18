@@ -1,8 +1,8 @@
 from sqlalchemy.future import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from models.enrolment import Enrolment
-from models.student import Student
+from app.models.enrolment import Enrolment
+from app.models.student import Student
 
 
 async def delete_enrolments_by_student(db: AsyncSession, std_id: int):

@@ -1,12 +1,12 @@
 from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
-from models.student import Student
-from models.enrolment import Enrolment
-from schemas.student import StudentCreate, StudentUpdate
+from app.models.student import Student
+from app.models.enrolment import Enrolment
+from app.schemas.student import StudentCreate, StudentUpdate
 from datetime import date
 
-import crud.enrolment as enrolment_crud
+import app.crud.enrolment as enrolment_crud
 
 from fastapi.responses import HTMLResponse
 

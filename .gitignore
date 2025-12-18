@@ -59,3 +59,9 @@ Thumbs.db
 #databse ini file database.ini
 app/database.ini
 
+.env
+database.ini
+*.pyc
+__pycache__/
+env/
+.git/

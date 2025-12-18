@@ -6,18 +6,18 @@ from fastapi.responses import JSONResponse, RedirectResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from fastapi.staticfiles import StaticFiles
-from database import engine, Base, get_db
+from app.database import engine, Base, get_db
 
-from schemas.student import StudentCreate, StudentUpdate
-from schemas.admin import AdminLogin
-
-
+from app.schemas.student import StudentCreate, StudentUpdate
+from app.schemas.admin import AdminLogin
 
 
-from crud import student as student_crud
-from crud import admin as admin_crud
-from crud import subject as subject_crud
-from crud import initialize_default_data
+
+
+from app.crud import student as student_crud
+from app.crud import admin as admin_crud
+from app.crud import subject as subject_crud
+from app.crud import initialize_default_data
 
 # Middleware for session management
 from starlette.middleware.sessions import SessionMiddleware
@@ -56,9 +56,10 @@ app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="stat
 def admin_required(request: Request):
     if not request.session.get("admin_id"):
         request.session.clear()
+        print("=========+++++++++++++++++++==================")
         raise HTTPException(
             status_code=status.HTTP_303_SEE_OTHER,
-            headers={"Location": "/login"}
+            headers={"Location": "/"}
         )
 
 
@@ -98,7 +99,7 @@ async def home(request: Request):
 
 #Done
 ######################## View Student List Page ######################
-@app.get("/stdlist", response_class=HTMLResponse)
+@app.get("/stdlist",dependencies=[Depends(admin_required)])
 async def stdlist_page(request: Request):
     html = templates.TemplateResponse("students/stdlist.html", {"request": request})
     return control_cache(request, html)

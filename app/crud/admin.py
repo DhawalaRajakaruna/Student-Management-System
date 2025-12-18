@@ -1,7 +1,7 @@
 from sqlalchemy.future import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from models.admin import Admin
-from schemas.admin import AdminCreate, AdminUpdate, AdminLogin
+from app.models.admin import Admin
+from app.schemas.admin import AdminCreate, AdminUpdate, AdminLogin
 
 async def login_admin(db: AsyncSession, admin_data: AdminLogin):
     try:

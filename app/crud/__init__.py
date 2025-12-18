@@ -1,13 +1,13 @@
 from sqlalchemy.future import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from models.enrolment import Enrolment
-from models.student import Student
-from models.subject import Subject
-from models.admin import Admin
+from app.models.enrolment import Enrolment
+from app.models.student import Student
+from app.models.subject import Subject
+from app.models.admin import Admin
 
 from sqlalchemy import delete
-from database import engine
+from app.database import engine
 
 
 async def initialize_default_data():

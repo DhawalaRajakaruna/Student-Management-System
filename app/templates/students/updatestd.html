@@ -157,7 +157,8 @@
         let enrolledSubjects = null;
         
         document.getElementById('searchBtn').addEventListener('click', () => {
-            const email = document.getElementById('emailInput').value.toLowerCase();
+            const email = document.getElementById('emailInput').value.trim();
+            
             
             if (!email) {
                 showAlert('Please enter an email address to search!', 'error');

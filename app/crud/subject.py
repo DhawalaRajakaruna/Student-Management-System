@@ -1,6 +1,6 @@
 from sqlalchemy.future import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from models.subject import Subject
+from app.models.subject import Subject
 
 async def get_all_subjects(db: AsyncSession):
     result = await db.execute(select(Subject))
