@@ -65,3 +65,6 @@ database.ini
 __pycache__/
 env/
 .git/
+
+app/.env
+app/k8s/secrets.yaml

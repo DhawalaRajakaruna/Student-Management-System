@@ -2,7 +2,7 @@ services:
   api:
     build: . #Instead of pulling an image, you can build one locally by specifying a directory containing a Dockerfile.
     image: web_api_image # tagging the image we are building
-    container_name: web_api # naming the container by a custom name
+    container_name: web-api # naming the container by a custom name
     ports: #host_port:container_port.
       - "${API_PORT}:8000" # Setting maps a container's internal ports to those on the host machine, enabling access to services from outside the container
     depends_on: # Depends_on controls the startup order of services, ensuring that certain containers are running before others begin.
@@ -16,7 +16,7 @@ services:
 
   db:
     image: postgres:15-alpine #which Docker image we are going to use by the service (We can have it from Docker Hub)
-    container_name: postgres_db
+    container_name: postgres-db
     environment:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}

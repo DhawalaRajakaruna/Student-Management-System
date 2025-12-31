@@ -1,26 +1,33 @@
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: apps/v1 # specifies the API version
+kind: Deployment # specifies the kind of resource we are creating
 metadata:
-  name: app-deployment 
+  name: app-deployment # giving name for the deployment
 spec:
-  replicas: 2
+  replicas: 2 # there should be two pods of this deployment running always there will be 2 pods at a time in the node
   selector:
     matchLabels:
-      app: web_api
+      app: web_api # this will decide which pods belong to this deployment by looking at the labels of the pod
   template: 
     metadata:
       labels:
-        app: web_api
+        app: web_api # label to identify the pod
     spec:
       containers:
-      - name: web_api
-        image: web_api_image:latest
-        imagePullPolicy: Never
+      - name: web-api # name of the container that should run inside the pod
+        image: web_api_image:latest # image name that we built using Dockerfile
+        imagePullPolicy: Never # no need to pull the image outside, we are using local image
         ports:
-        - containerPort: 8000
+        - containerPort: 8000 # port on which the container will listen inside the pod
         env:
-          - name: DATABASE_URL
+          - name: DATABASE_URL # Url where the app should know to connect to the database
             valueFrom:
-              secretKeyRef:
-                name: db-credentials
-                key: database_url
+              secretKeyRef: # Database url is not hardcoded, it is referanced from the secrets
+                name: db-secret # name of the secret to referance
+                key: DATABASE_URL #key inside the secret should be take here
+        resources: # to manage the resources that each pod can have to avoid overloading the node
+          limits:
+            memory: "512Mi" # each pod can use maximum of 512Mi memory
+            cpu: "500m" # each pod can use maximum of 500 millicores of cpu
+          requests:
+            memory: "256Mi" # each pod requests 256Mi memory to be allocated
+            cpu: "250m" # each pod requests 250 millicores of cpu to be allocated
