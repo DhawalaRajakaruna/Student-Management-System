@@ -99,7 +99,7 @@ async def home(request: Request):
 
 #Done
 ######################## View Student List Page ######################
-@app.get("/stdlist",dependencies=[Depends(admin_required)])
+@app.get("/stdlist", response_class=HTMLResponse,dependencies=[Depends(admin_required)])
 async def stdlist_page(request: Request):
     html = templates.TemplateResponse("students/stdlist.html", {"request": request})
     return control_cache(request, html)

@@ -1,26 +1,34 @@
-version: '3.8'
-
 services:
   api:
-    build: .
-    container_name: web_api
-    ports:
-      - "8000:8000"
-    depends_on:
+    build: . #Instead of pulling an image, you can build one locally by specifying a directory containing a Dockerfile.
+    image: web_api_image # tagging the image we are building
+    container_name: web_api # naming the container by a custom name
+    ports: #host_port:container_port.
+      - "${API_PORT}:8000" # Setting maps a container's internal ports to those on the host machine, enabling access to services from outside the container
+    depends_on: # Depends_on controls the startup order of services, ensuring that certain containers are running before others begin.
       - db
     volumes:
-      - .:/app
+      - .:/app #V Live code reload good in development
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    
+    networks:
+      - dhawala_network
 
   db:
-    image: postgres:15-alpine
+    image: postgres:15-alpine #which Docker image we are going to use by the service (We can have it from Docker Hub)
     container_name: postgres_db
     environment:
-      - POSTGRES_USER=dhawala
-      - POSTGRES_PASSWORD=123
-      - POSTGRES_DB=managedb
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    
+    networks:
+      - dhawala_network
 
 volumes:
-  postgres_data:
+  postgres_data: # allow to store data out side the container
+
+networks:
+  dhawala_network: # custom network for the services to communicate
