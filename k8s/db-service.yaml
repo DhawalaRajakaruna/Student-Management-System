@@ -2,6 +2,7 @@ apiVersion: v1 # specifies the API version . "Kind : service" gets v1 type versi
 kind: Service # specifies the kind of resource we are creating
 metadata:
   name: postgres-service # this provide service for the database pods
+  namespace: my-webapp # namespace where this service should be created
 spec:
   type: ClusterIP # not to be exposed outside the cluster, database should be internal use only
   selector:

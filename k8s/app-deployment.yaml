@@ -2,6 +2,7 @@ apiVersion: apps/v1 # specifies the API version
 kind: Deployment # specifies the kind of resource we are creating
 metadata:
   name: app-deployment # giving name for the deployment
+  namespace: my-webapp # namespace where this deployment should be created
 spec:
   replicas: 2 # there should be two pods of this deployment running always there will be 2 pods at a time in the node
   selector:

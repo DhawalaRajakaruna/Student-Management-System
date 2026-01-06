@@ -2,6 +2,7 @@ apiVersion: apps/v1 # specify the service for a deplyment as v1
 kind: Deployment # this is the type of resource we are creating, This is deplyment type
 metadata:
   name: postgres-deployment  # Given name for the deployment
+  namespace: my-webapp # namespace where this deployment should be created
 spec:
   replicas: 1 # only one pod should be alwayys there for the database
   selector:
