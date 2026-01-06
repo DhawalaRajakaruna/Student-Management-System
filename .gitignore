@@ -67,4 +67,5 @@ env/
 .git/
 
 app/.env
-k8s/secrets.yaml
+secret.yaml
+k8s/secret.yaml
