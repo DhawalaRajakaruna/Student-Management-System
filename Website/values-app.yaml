@@ -1,0 +1,24 @@
+deployment:
+  db:
+    enabled: false
+
+service:
+  db:
+    enabled: false
+
+pvc:
+  enabled: false
+
+hpa:
+  db:
+    enabled: false
+  
+  app:
+    minReplicas: 5
+    maxReplicas: 10
+
+secret:
+  enabled: true
+  name: app-secret
+  type: Opaque
+  DATABASE_URL: cG9zdGdyZXNxbCthc3luY3BnOi8vZGhhd2FsYToxMjNAcG9zdGdyZXMtc2VydmljZTo1NDMyL21hbmFnZWRi  # Base64 for 'postgresql+asyncpg://dhawala:123@postgres-service:5432/managedb'

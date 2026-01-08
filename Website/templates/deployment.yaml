@@ -1,0 +1,66 @@
+{{- range $name, $dep := .Values.deployment }} 
+{{- if $dep.enabled }}                        # dep -> Values
+apiVersion: apps/v1 
+kind: Deployment 
+metadata:
+  name: {{ $dep.name }}
+spec:
+  replicas: {{ $dep.replicas }}
+  selector:
+    matchLabels:
+      app: {{ $name }}
+  template: 
+    metadata:
+      labels:
+        app: {{ $name }}
+    spec:
+      containers:
+      - name: {{ $name }}
+        image: {{ $dep.container.image }}
+        imagePullPolicy: {{ $dep.container.imagePullPolicy }}
+        ports:
+        - containerPort: {{ $dep.container.containerPort }}
+{{- if $dep.container.env }}
+        env:
+{{- range $dep.container.env }}
+          - name: {{ .envname }}
+            valueFrom:
+              secretKeyRef:
+                name: {{ .name }}
+                key: {{ .key }}
+{{- end }}
+{{- end }}
+
+{{- if $dep.container.resources }}
+        resources: 
+{{- if $dep.container.resources.limits }}
+          limits:
+            memory: {{ $dep.container.resources.limits.memory }}
+            cpu: {{ $dep.container.resources.limits.cpu }}
+{{- end }}
+{{- if $dep.container.resources.requests }}
+          requests:
+            memory: {{ $dep.container.resources.requests.memory }}
+            cpu: {{ $dep.container.resources.requests.cpu }}
+{{- end }}
+{{- end }}
+
+{{- if $dep.container.volume }}
+        volumeMounts:
+{{- range $dep.container.volume }}
+          - name: {{ .name }}
+            mountPath: {{ .mountPath }}
+{{- end }}
+{{- end }}
+
+{{- if $dep.container.volume }}
+      volumes:
+{{- range $dep.container.volume }}
+      - name: {{ .name }}
+        persistentVolumeClaim:
+          claimName: {{ .volumeClaimName }}
+{{- end }}
+{{- end }}
+---
+{{- end }}
+{{- end }}

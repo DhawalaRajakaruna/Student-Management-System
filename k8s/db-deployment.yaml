@@ -35,6 +35,13 @@ spec:
               secretKeyRef:
                 name: db-secret # we have to referance the secret to get the database name
                 key: POSTGRES_DB # get the key inside the databse for the database name
+        resources: # Resource limits and requests for the container --------------
+          limits:
+            memory: "512Mi" # maximum memory the container can use
+            cpu: "500m"    # maximum CPU the container can use
+          requests:
+            memory: "256Mi" # minimum memory the container needs
+            cpu: "250m"     # minimum CPU the container needs
         volumeMounts: # Mounts a volume to the container tos store data outside. --------(belongs to the container)
           - name: postgres-storage # links to the volume defined in the pod spec
             mountPath: /var/lib/postgresql/data # this is the path inside the container where the volume will be mounted

@@ -10,5 +10,5 @@ spec:
   ports:
     - port: 8000 # port on the service
       targetPort: 8000 # Port on the pod
-      nodePort: 30000 # Port of the Node to expose the service
+      nodePort: 30080 # Port of the Node to expose the service
       
